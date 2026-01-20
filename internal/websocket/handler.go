@@ -1,11 +1,13 @@
 package websocket
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/rebec/jueguito/game-core/internal/game"
 )
 
 var upgrader = websocket.Upgrader{
@@ -72,9 +74,19 @@ func (c *Client) readPump() {
 			break
 		}
 
-		log.Printf("Received message: %s", string(message))
-		// Echo message back to sender
-		c.send <- message
+		// Parse message
+		var msg struct {
+			Type string          `json:"type"`
+			Data json.RawMessage `json:"data"`
+		}
+		
+		if err := json.Unmarshal(message, &msg); err != nil {
+			log.Printf("Error parsing message: %v", err)
+			continue
+		}
+
+		// Process message through hub (pass client for player ID)
+		c.hub.ProcessMessage(c, game.MessageType(msg.Type), msg.Data)
 	}
 }
 
