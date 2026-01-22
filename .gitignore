@@ -4,8 +4,6 @@
 *.dll
 *.so
 *.dylib
-game-core
-server
 
 # Test binary
 *.test
